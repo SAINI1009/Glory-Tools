@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Glory AI Tools – Upscaler & Metadata</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #050816;
+      color: #f5f5f5;
+    }
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: #b0b0b0;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #2ecc71;
+      box-shadow: 0 0 8px #2ecc71;
+    }
+    header h1 {
+      margin: 8px 0 4px;
+      font-size: 2rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    header h1 span { color: #ffb92c; }
+    header p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #c7c7c7;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, rgba(255,185,44,0.12), transparent 55%),
+                  rgba(9,10,25,0.96);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 16px 18px 18px;
+      box-shadow: 0 22px 60px rgba(0,0,0,0.6);
+    }
+    .card-title {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.17em;
+      color: #a5a5a5;
+      margin-bottom: 8px;
+    }
+    .card-sub {
+      font-size: 0.8rem;
+      color: #8d8d8d;
+      margin-bottom: 10px;
+    }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #a0a0a0;
+      margin-bottom: 4px;
+    }
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(5,7,20,0.95);
+      color: #f5f5f5;
+      padding: 9px 10px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+      resize: vertical;
+    }
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #ffb92c;
+      box-shadow: 0 0 0 1px rgba(255,185,44,0.35);
+      background: rgba(9,10,25,1);
+    }
+    textarea {
+      min-height: 70px;
+      max-height: 200px;
+    }
+    .field { margin-bottom: 10px; }
+
+    .upload-zone {
+      border-radius: 14px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      padding: 14px;
+      text-align: center;
+      background: rgba(5,7,20,0.9);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.08s;
+    }
+    .upload-zone:hover {
+      border-color: #ffb92c;
+      background: rgba(8,10,26,1);
+      transform: translateY(-1px);
+    }
+    .upload-zone span {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+      color: #e6e6e6;
+    }
+    .upload-zone small {
+      display: block;
+      font-size: 0.74rem;
+      color: #888;
+    }
+    .upload-meta {
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #b0b0b0;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .upload-thumb {
+      margin-top: 8px;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #050816;
+      border: 1px solid rgba(255,255,255,0.07);
+      max-height: 200px;
+    }
+    .upload-thumb img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: #bfbfbf;
+      gap: 8px;
+    }
+    .switch {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      width: 42px;
+      height: 22px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .switch-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(255,255,255,0.18);
+      transition: background 0.2s;
+    }
+    .switch-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #050816;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      transition: transform 0.2s;
+    }
+    .switch input:checked + .switch-bg {
+      background: #ffb92c;
+    }
+    .switch input:checked ~ .switch-thumb {
+      transform: translateX(18px);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #bababa;
+    }
+    .checkbox-row input {
+      width: 14px;
+      height: 14px;
+      accent-color: #ffb92c;
+    }
+
+    .center-actions {
+      text-align: center;
+      margin: 20px 0 8px;
+    }
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      padding: 11px 28px;
+      font-size: 0.96rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ffb92c, #ff7a3c);
+      color: #050816;
+      box-shadow: 0 14px 35px rgba(0,0,0,0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.1s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 45px rgba(0,0,0,0.8);
+    }
+    .btn-primary:active {
+      transform: translateY(1px) scale(0.98);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.65);
+    }
+    .btn-primary[disabled] {
+      opacity: 0.6;
+      cursor: default;
+      transform: none;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+    }
+    .sparkle { font-size: 1.1rem; }
+
+    .status {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 6px;
+      min-height: 18px;
+      color: #bbbbbb;
+    }
+    .status.ok { color: #2ecc71; }
+    .status.error { color: #ff7676; }
+    .status span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ffb92c;
+      box-shadow: 0 0 0 0 rgba(255,185,44,0.6);
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,185,44,0.6); }
+      70% { box-shadow: 0 0 0 8px rgba(255,185,44,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,185,44,0); }
+    }
+
+    .final-image-box {
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(5,7,20,0.9);
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .final-image-box img {
+      width: 100%;
+      border-radius: 10px;
+      display: block;
+      max-height: 360px;
+      object-fit: cover;
+    }
+    .result-meta {
+      font-size: 0.8rem;
+      color: #b0b0b0;
+      margin-bottom: 6px;
+    }
+
+    .btn-outline {
+      margin-top: 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: transparent;
+      color: #f5f5f5;
+      padding: 8px 18px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.16s, color 0.16s, transform 0.08s;
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.09);
+      transform: translateY(-1px);
+    }
+
+    .meta-block {
+      margin-top: 12px;
+    }
+    .meta-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .meta-head span {
+      font-size: 0.8rem;
+      color: #d5d5d5;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+    textarea[readonly] {
+      opacity: 0.95;
+    }
+    .copy-btn {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.03);
+      color: #f5f5f5;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.16s, transform 0.08s;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-1px);
+    }
+
+    footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #777;
+    }
+    .note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #8e8e8e;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="badge">
+        <div class="badge-dot"></div>
+        <span>Glory AI Tools</span>
+        <span>Upscaler & Metadata</span>
+      </div>
+      <h1><span>Glory</span> AI Tools</h1>
+      <p>Upscale your AI images and generate stock-friendly metadata on one simple page.</p>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT: UPSCALER -->
+      <section class="card">
+        <div class="card-title">1 · Upscaler · Stock Safe</div>
+        <div class="card-sub">
+          Upload your image and let Glory AI Tools prepare it for stock agencies (Adobe Stock, Shutterstock, etc.).
+        </div>
+
+        <input type="file" id="upscaleInput" accept="image/*" style="display:none">
+
+        <div id="upscaleDrop" class="upload-zone">
+          <span>Click to upload or drop an image</span>
+          <small>JPG / PNG · Minimum ~1000px recommended</small>
+        </div>
+
+        <div id="upscaleInfo" class="upload-meta" style="display:none">
+          <div id="upscaleFileName"></div>
+          <div id="upscaleFileSize"></div>
+        </div>
+
+        <div id="upscalePreviewBox" class="upload-thumb" style="display:none">
+          <img id="upscalePreview" src="" alt="Preview" />
+        </div>
+
+        <hr style="border-color:rgba(255,255,255,0.08);margin:12px 0;">
+
+        <div class="field">
+          <label>Stock Safe Mode</label>
+          <div class="inline">
+            <span>Optimize resolution, noise & compression</span>
+            <label class="switch">
+              <input type="checkbox" id="upscaleStockSafe" checked>
+              <div class="switch-bg"></div>
+              <div class="switch-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="upscaleModeSelect">Upscale Mode</label>
+          <select id="upscaleModeSelect">
+            <option value="auto">Auto (recommended)</option>
+            <option value="2x">2×</option>
+            <option value="4x">4×</option>
+            <option value="clean">Only clean (no resize)</option>
+          </select>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="upscaleDenoise" checked>
+          <span>Denoise softly</span>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="upscaleSharpen" checked>
+          <span>Mild sharpen</span>
+        </div>
+
+        <div class="center-actions">
+          <button id="upscaleBtn" class="btn-primary">
+            <span class="sparkle">✨</span>
+            <span>Upscale for Stock</span>
+          </button>
+        </div>
+        <div id="upscaleStatus" class="status"></div>
+
+        <div id="upscaleResult" style="display:none;">
+          <div class="card-sub">Final stock-ready image:</div>
+          <div class="final-image-box">
+            <div class="result-meta" id="upscaleResultMeta">Final Resolution: —</div>
+            <img id="upscaleResultImg" src="" alt="Upscaled image">
+          </div>
+          <button id="upscaleDownload" class="btn-outline">
+            ⬇ Download Upscaled Image
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT: METADATA -->
+      <section class="card">
+        <div class="card-title">2 · Metadata · Title · Description · Keywords</div>
+        <div class="card-sub">
+          Strong metadata helps your images get found and sold faster on stock marketplaces.
+        </div>
+
+        <div class="field">
+          <label for="metaImageType">Image Type</label>
+          <select id="metaImageType">
+            <option value="photo">Photo</option>
+            <option value="ai art">AI Art</option>
+            <option value="illustration">Illustration</option>
+            <option value="background">Background / Pattern</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="metaSubject">Main Subject</label>
+          <input
+            type="text"
+            id="metaSubject"
+            placeholder="Cozy Christmas street at night with couple walking"
+          />
+        </div>
+
+        <div class="field">
+          <label for="metaStyle">Style / Mood</label>
+          <select id="metaStyle">
+            <option value="realistic">Realistic</option>
+            <option value="cinematic">Cinematic</option>
+            <option value="minimal">Minimal</option>
+            <option value="vibrant">Vibrant</option>
+            <option value="dark moody">Dark / Moody</option>
+            <option value="flat illustration">Flat Illustration</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="metaUsage">Usage / Purpose</label>
+          <input
+            type="text"
+            id="metaUsage"
+            placeholder="website banner, social media, advertising"
+          />
+        </div>
+
+        <div class="center-actions" style="margin-top:10px;">
+          <button id="metaBtn" class="btn-primary">
+            <span class="sparkle">🧠</span>
+            <span>Generate Metadata</span>
+          </button>
+        </div>
+        <div id="metaStatus" class="status"></div>
+
+        <div id="metaResult" style="display:none;">
+          <div class="meta-block">
+            <div class="meta-head">
+              <span>Title</span>
+              <button class="copy-btn" data-copy-target="metaTitle">Copy</button>
+            </div>
+            <textarea id="metaTitle" readonly></textarea>
+          </div>
+
+          <div class="meta-block">
+            <div class="meta-head">
+              <span>Description</span>
+              <button class="copy-btn" data-copy-target="metaDescription">Copy</button>
+            </div>
+            <textarea id="metaDescription" readonly></textarea>
+          </div>
+
+          <div class="meta-block">
+            <div class="meta-head">
+              <span>Keywords</span>
+              <button class="copy-btn" data-copy-target="metaKeywords">Copy</button>
+            </div>
+            <textarea id="metaKeywords" readonly></textarea>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="note">
+      This is a front-end demo. Connect it to your own backend (/api/upscale-stock & /api/generate-metadata)
+      for real AI upscaling and metadata.
+    </div>
+
+    <footer>
+      Glory AI Tools · Upscaler & Metadata · Made for stock images.
+    </footer>
+  </div>
+
+  <script>
+    // ---------- UPSCALER FRONTEND ----------
+    let gloryUpscaleFile = null;
+    let gloryUpscaleBlobUrl = null;
+
+    const upscaleInput       = document.getElementById("upscaleInput");
+    const upscaleDrop        = document.getElementById("upscaleDrop");
+    const upscaleInfo        = document.getElementById("upscaleInfo");
+    const upscaleFileName    = document.getElementById("upscaleFileName");
+    const upscaleFileSize    = document.getElementById("upscaleFileSize");
+    const upscalePreviewBox  = document.getElementById("upscalePreviewBox");
+    const upscalePreview     = document.getElementById("upscalePreview");
+    const upscaleBtn         = document.getElementById("upscaleBtn");
+    const upscaleStatus      = document.getElementById("upscaleStatus");
+    const upscaleResult      = document.getElementById("upscaleResult");
+    const upscaleResultImg   = document.getElementById("upscaleResultImg");
+    const upscaleResultMeta  = document.getElementById("upscaleResultMeta");
+    const upscaleDownload    = document.getElementById("upscaleDownload");
+
+    const upscaleStockSafe   = document.getElementById("upscaleStockSafe");
+    const upscaleModeSelect  = document.getElementById("upscaleModeSelect");
+    const upscaleDenoise     = document.getElementById("upscaleDenoise");
+    const upscaleSharpen     = document.getElementById("upscaleSharpen");
+
+    function humanSize(bytes) {
+      if (!bytes && bytes !== 0) return "";
+      const units = ["B","KB","MB","GB"];
+      let i=0, v=bytes;
+      while (v>=1024 && i<units.length-1) { v/=1024; i++; }
+      return v.toFixed(1)+" "+units[i];
+    }
+
+    function handleUpscaleFile(file) {
+      gloryUpscaleFile = file;
+      upscaleInfo.style.display = "flex";
+      upscaleFileName.textContent = file.name;
+      upscaleFileSize.textContent = humanSize(file.size);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        upscalePreview.src = e.target.result;
+        upscalePreviewBox.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // click & drag drop
+    upscaleDrop.addEventListener("click", () => upscaleInput.click());
+    upscaleInput.addEventListener("change", () => {
+      const f = upscaleInput.files[0];
+      if (f && f.type.startsWith("image/")) handleUpscaleFile(f);
+    });
+
+    upscaleDrop.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      upscaleDrop.style.borderColor = "#ffb92c";
+    });
+    upscaleDrop.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      upscaleDrop.style.borderColor = "rgba(255,255,255,0.18)";
+    });
+    upscaleDrop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      upscaleDrop.style.borderColor = "rgba(255,255,255,0.18)";
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith("image/")) handleUpscaleFile(f);
+    });
+
+    // DEMO backend – yahan REAL API se replace karega developer
+    async function fakeUpscaleProcess() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            width: 4096,
+            height: 4096
+          });
+        }, 1500);
+      });
+    }
+
+    upscaleBtn.addEventListener("click", async () => {
+      if (!gloryUpscaleFile) {
+        upscaleStatus.textContent = "Please upload an image first.";
+        upscaleStatus.className = "status error";
+        return;
+      }
+
+      upscaleStatus.innerHTML = '<span><div class="dot-pulse"></div>Upscaling image...</span>';
+      upscaleStatus.className = "status";
+      upscaleBtn.disabled = true;
+
+      try {
+        // REAL IMPLEMENTATION (backend par):
+        /*
+        const formData = new FormData();
+        formData.append("image", gloryUpscaleFile);
+        formData.append("stockSafe", upscaleStockSafe.checked);
+        formData.append("upscaleMode", upscaleModeSelect.value);
+        formData.append("denoise", upscaleDenoise.checked);
+        formData.append("sharpen", upscaleSharpen.checked);
+
+        const res = await fetch("https://YOUR_DOMAIN/api/upscale-stock", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || "Upscale failed");
+
+        // yahan data.finalImageUrl use karna
+        */
+
+        // DEMO:
+        const data = await fakeUpscaleProcess();
+
+        if (gloryUpscaleBlobUrl) URL.revokeObjectURL(gloryUpscaleBlobUrl);
+        gloryUpscaleBlobUrl = URL.createObjectURL(gloryUpscaleFile);
+        upscaleResultImg.src = gloryUpscaleBlobUrl;
+
+        upscaleResultMeta.textContent = `Final Resolution (demo): ${data.width} × ${data.height}`;
+        upscaleResult.style.display = "block";
+        upscaleStatus.textContent = "Done. Image is stock-ready (demo).";
+        upscaleStatus.className = "status ok";
+      } catch (err) {
+        console.error(err);
+        upscaleStatus.textContent = "Something went wrong while upscaling.";
+        upscaleStatus.className = "status error";
+      } finally {
+        upscaleBtn.disabled = false;
+      }
+    });
+
+    upscaleDownload.addEventListener("click", () => {
+      if (!gloryUpscaleBlobUrl) return;
+      const a = document.createElement("a");
+      a.href = gloryUpscaleBlobUrl;
+      a.download = "glory-upscaled.jpg";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+
+    // ---------- METADATA FRONTEND ----------
+    const metaImageType  = document.getElementById("metaImageType");
+    const metaSubject    = document.getElementById("metaSubject");
+    const metaStyle      = document.getElementById("metaStyle");
+    const metaUsage      = document.getElementById("metaUsage");
+    const metaBtn        = document.getElementById("metaBtn");
+    const metaStatus     = document.getElementById("metaStatus");
+    const metaResult     = document.getElementById("metaResult");
+    const metaTitle      = document.getElementById("metaTitle");
+    const metaDescription= document.getElementById("metaDescription");
+    const metaKeywords   = document.getElementById("metaKeywords");
+
+    function localMetaDemo() {
+      const type   = metaImageType.value || "image";
+      const subj   = metaSubject.value || "creative AI image";
+      const style  = metaStyle.value || "modern";
+      const usage  = metaUsage.value || "web, social media, advertising";
+
+      const title = subj.length > 3
+        ? subj.charAt(0).toUpperCase() + subj.slice(1)
+        : "AI generated stock image";
+
+      const desc = `High quality ${type} of ${subj} in ${style} style. Perfect for ${usage} stock use.`;
+
+      const baseKeywords = [
+        "ai generated",
+        "stock image",
+        "background",
+        "creative",
+        "design",
+        "template",
+        "modern",
+        "graphic",
+        "wallpaper",
+        "web",
+        "social media",
+        "advertising"
+      ];
+
+      return {
+        title,
+        description: desc,
+        keywords: baseKeywords.join(", ")
+      };
+    }
+
+    metaBtn.addEventListener("click", async () => {
+      if (!metaSubject.value.trim()) {
+        metaStatus.textContent = "Write main subject first.";
+        metaStatus.className = "status error";
+        return;
+      }
+
+      metaStatus.innerHTML = '<span><div class="dot-pulse"></div>Generating metadata...</span>';
+      metaStatus.className = "status";
+      metaBtn.disabled = true;
+
+      try {
+        // REAL IMPLEMENTATION (backend par):
+        /*
+        const body = {
+          imageType: metaImageType.value,
+          mainSubject: metaSubject.value,
+          style: metaStyle.value,
+          usage: metaUsage.value
+        };
+
+        const res = await fetch("https://YOUR_DOMAIN/api/generate-metadata", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || "Metadata failed");
+        */
+
+        // DEMO:
+        const data = localMetaDemo();
+
+        metaTitle.value       = data.title;
+        metaDescription.value = data.description;
+        metaKeywords.value    = data.keywords;
+
+        metaResult.style.display = "block";
+        metaStatus.textContent = "Done. Metadata created (demo).";
+        metaStatus.className = "status ok";
+      } catch (err) {
+        console.error(err);
+        metaStatus.textContent = "Something went wrong while generating metadata.";
+        metaStatus.className = "status error";
+      } finally {
+        metaBtn.disabled = false;
+      }
+    });
+
+    // COPY buttons
+    document.querySelectorAll(".copy-btn").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-copy-target");
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.select();
+        el.setSelectionRange(0, 99999);
+        try {
+          await navigator.clipboard.writeText(el.value);
+          const old = btn.textContent;
+          btn.textContent = "Copied";
+          setTimeout(() => (btn.textContent = old), 1200);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    });
+  </script>
+</body>
+  </html>
